@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -14,32 +8,54 @@ namespace Assignment
 {
     public partial class frmImageConversion : Form
     {
+        private Image<Gray, Byte> img;
+        string fileLoc;
+
         public frmImageConversion()
         {
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void BtnUpload_click(object sender, EventArgs e)
         {
             // Open file dialog with image filters
             using (OpenFileDialog ofd = new OpenFileDialog() { Filter = "Image Files(*.jpg; *.jpeg; *.gif; *.bmp; *.png)|*.jpg; *.jpeg; *.gif; *.bmp; *.png" })
             {
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    string fileLoc = ofd.FileName;
-                    Mat img = CvInvoke.Imread(fileLoc);
+                    fileLoc = ofd.FileName;
 
-                    // Displaying Uploaded Image 
-                    imgUpload.Image = new Bitmap(ofd.FileName);
+                    img = new Image<Gray, Byte>(fileLoc);
                     
-                    // Converting Image into Grayscale
-                    Image<Bgr, byte> inputImage = img.ToImage<Bgr, byte>();
-                    Image<Gray, Byte> result = inputImage.Convert<Gray, Byte>();
+                    // Display Uploaded Image
+                    imgUpload.Image = new Bitmap(fileLoc);
 
-                    // Displaying Grayscaled Image in Picture Box
-                    imgGrayscale.Image = new Bitmap(result.ToBitmap());
+                    trkToGray.Enabled = true;
+                    
                 }
             }
         }
+
+        private void TrkToGray_Scroll(object sender, EventArgs e)
+        {
+            double trackbar = trkToGray.Value;
+            int lblVal;
+
+            if (fileLoc != null)
+            {
+                using (Image<Gray, Byte> Gray = img.ThresholdBinary(new Gray(trackbar), new Gray(255)))
+                {
+
+                    lblVal = (int)trackbar;
+                    
+                    // Display % conversion
+                    lbltracker.Text = " " + lblVal * 100 / 255 + " % "; 
+
+                    // Display Converted Image
+                    imgGray.Image = Gray.ToBitmap();
+                }
+            }
+        }
+
     }
 }
